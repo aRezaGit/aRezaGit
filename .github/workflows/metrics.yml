@@ -1,18 +1,67 @@
-   name: GitHub Metrics
+name: GitHub Metrics
 
-   on:
-     schedule: 
-       - cron: "0 0 * * *"
-     workflow_dispatch:
-     push:
-       branches: ["main"]
+on:
+  schedule:
+    - cron: "0 3 * * *" # هر روز ساعت 03:00 UTC (صبح زود تهران)
+  workflow_dispatch: # اجرا دستی
+  push:
+    branches: ["main"] # تغییرات README هم می‌تواند اجرا کند
 
-   jobs:
-     github-metrics:
-       runs-on: ubuntu-latest
-       steps:
-         - name: Metrics embed
-           uses: lowlighter/metrics@v3.9
-           with:
-             token: ${{ secrets.METRICS_TOKEN }}
-             base: "header, activity, community, repositories, metadata"
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate metrics
+        uses: lowlighter/metrics@v3.9
+        with:
+          # توکن را به عنوان secret می‌گذاری
+          token: ${{ secrets.METRICS_TOKEN }}
+
+          # نام کاربری گیت‌هاب
+          user: aRezaGit
+
+          # فایل خروجی داخل رپو
+          filename: github-metrics.svg
+
+          # قالب و بخش‌های پایه
+          template: classic
+          base: "header, activity, community, repositories, metadata"
+
+          # تنظیم منطقه زمانی
+          config_timezone: Asia/Tehran
+
+          # پلاگین‌ها (انتخاب‌های منطقی و کاربردی)
+          plugin_languages: yes
+          plugin_languages_limit: 8
+          plugin_languages_ignored: "html, css"
+          plugin_languages_details: "percentage, bytes-size"
+
+          plugin_achievements: yes
+          plugin_achievements_threshold: C
+          plugin_achievements_secrets: yes
+
+          plugin_topics: yes
+          plugin_topics_limit: 12
+          plugin_topics_mode: mastered
+          plugin_topics_sort: stars
+
+          plugin_followup: yes
+          plugin_followup_sections: "repositories"
+
+          plugin_lines: yes
+
+          plugin_calendar: yes
+          plugin_calendar_limit: 1
+
+          plugin_stars: yes
+          plugin_stars_limit: 6
+
+      - name: Commit updated metrics
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(metrics): update github-metrics.svg"
+          file_pattern: "github-metrics.svg"
+
