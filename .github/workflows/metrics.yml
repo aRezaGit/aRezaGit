@@ -4,7 +4,7 @@ on:
   schedule:
     # اجرای خودکار هر روز ساعت 03:00 UTC  (≈ 06:30 صبح تهران)
     - cron: "0 3 * * *"
-  workflow_dispatch:        # امکان اجرای دستی از تب Actions
+  workflow_dispatch:        # اجرای دستی از تب Actions
   push:
     branches: ["main"]      # اجرای در صورت تغییر README یا فایل‌های اصلی
 
@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- مرحله ۱: دریافت کد ---
+      # --- ۱. دریافت کد ---
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- مرحله ۲: تولید آمار ---
+      # --- ۲. تولید آمار ---
       - name: Generate GitHub metrics
-        uses: lowlighter/metrics@v3.9
+        uses: lowlighter/metrics@latest   # ← نسخه جدید، بدون مشکل مخازن Debian
         with:
           # توکن شخصی ذخیره‌شده در Secrets → METRICS_TOKEN
           token: ${{ secrets.METRICS_TOKEN }}
@@ -34,44 +34,45 @@ jobs:
           template: classic
           base: "header, activity, community, repositories, metadata"
 
-          # منطقه‌ی زمانی برای زمان‌بندی‌ها
+          # تنظیم منطقه زمانی
           config_timezone: Asia/Tehran
 
           # === پلاگین‌ها و تنظیمات کاربردی ===
 
-          # زبان‌ها (Language stats)
           plugin_languages: yes
           plugin_languages_limit: 8
           plugin_languages_ignored: "html, css"
           plugin_languages_details: "percentage, bytes-size"
 
-          # دستاوردها (Achievements)
           plugin_achievements: yes
           plugin_achievements_threshold: C
           plugin_achievements_secrets: yes
 
-          # موضوعات محبوب (Topics)
           plugin_topics: yes
           plugin_topics_mode: mastered
           plugin_topics_sort: stars
           plugin_topics_limit: 12
 
-          # پیگیری مخازن (Follow-up)
           plugin_followup: yes
           plugin_followup_sections: "repositories"
 
-          # خطوط کد (Lines of code)
           plugin_lines: yes
 
           # تقویم ایزویی (Commit calendar)
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
 
-          # پروژه‌های ستاره‌خورده (Starred repositories)
           plugin_stars: yes
           plugin_stars_limit: 6
 
-      # --- مرحله ۳: کامیت خودکار فایل SVG ---
+          # ===== تنظیمات خروجی کامیت =====
+          output_action: commit
+          committer_message: "chore(metrics): update github-metrics.svg"
+          repositories: 100
+          repositories_forks: no
+          repositories_affiliations: owner
+
+      # --- ۳. کامیت خودکار فایل SVG ---
       - name: Commit generated metrics
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
