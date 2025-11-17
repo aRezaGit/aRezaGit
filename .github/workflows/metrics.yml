@@ -2,66 +2,78 @@ name: GitHub Metrics
 
 on:
   schedule:
-    - cron: "0 3 * * *" # هر روز ساعت 03:00 UTC (صبح زود تهران)
-  workflow_dispatch: # اجرا دستی
+    # اجرای خودکار هر روز ساعت 03:00 UTC  (≈ 06:30 صبح تهران)
+    - cron: "0 3 * * *"
+  workflow_dispatch:        # امکان اجرای دستی از تب Actions
   push:
-    branches: ["main"] # تغییرات README هم می‌تواند اجرا کند
+    branches: ["main"]      # اجرای در صورت تغییر README یا فایل‌های اصلی
 
 jobs:
   metrics:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      # --- مرحله ۱: دریافت کد ---
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate metrics
+      # --- مرحله ۲: تولید آمار ---
+      - name: Generate GitHub metrics
         uses: lowlighter/metrics@v3.9
         with:
-          # توکن را به عنوان secret می‌گذاری
+          # توکن شخصی ذخیره‌شده در Secrets → METRICS_TOKEN
           token: ${{ secrets.METRICS_TOKEN }}
 
           # نام کاربری گیت‌هاب
           user: aRezaGit
 
-          # فایل خروجی داخل رپو
+          # نام فایل خروجی در شاخه‌ی main
           filename: github-metrics.svg
 
-          # قالب و بخش‌های پایه
+          # قالب و بلوک‌های پایه
           template: classic
           base: "header, activity, community, repositories, metadata"
 
-          # تنظیم منطقه زمانی
+          # منطقه‌ی زمانی برای زمان‌بندی‌ها
           config_timezone: Asia/Tehran
 
-          # پلاگین‌ها (انتخاب‌های منطقی و کاربردی)
+          # === پلاگین‌ها و تنظیمات کاربردی ===
+
+          # زبان‌ها (Language stats)
           plugin_languages: yes
           plugin_languages_limit: 8
           plugin_languages_ignored: "html, css"
           plugin_languages_details: "percentage, bytes-size"
 
+          # دستاوردها (Achievements)
           plugin_achievements: yes
           plugin_achievements_threshold: C
           plugin_achievements_secrets: yes
 
+          # موضوعات محبوب (Topics)
           plugin_topics: yes
-          plugin_topics_limit: 12
           plugin_topics_mode: mastered
           plugin_topics_sort: stars
+          plugin_topics_limit: 12
 
+          # پیگیری مخازن (Follow-up)
           plugin_followup: yes
           plugin_followup_sections: "repositories"
 
+          # خطوط کد (Lines of code)
           plugin_lines: yes
 
-          plugin_calendar: yes
-          plugin_calendar_limit: 1
+          # تقویم ایزویی (Commit calendar)
+          plugin_isocalendar: yes
+          plugin_isocalendar_duration: full-year
 
+          # پروژه‌های ستاره‌خورده (Starred repositories)
           plugin_stars: yes
           plugin_stars_limit: 6
 
-      - name: Commit updated metrics
+      # --- مرحله ۳: کامیت خودکار فایل SVG ---
+      - name: Commit generated metrics
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(metrics): update github-metrics.svg"
           file_pattern: "github-metrics.svg"
-
