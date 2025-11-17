@@ -1,44 +1,40 @@
 name: GitHub Metrics
 
 on:
+  # اجرای خودکار هر روز ساعت 03:00 UTC (≈ 06:30 صبح تهران)
   schedule:
-    # اجرای خودکار هر روز ساعت 03:00 UTC  (≈ 06:30 صبح تهران)
     - cron: "0 3 * * *"
-  workflow_dispatch:        # اجرای دستی از تب Actions
+  workflow_dispatch:    # اجرای دستی از تب Actions
   push:
-    branches: ["main"]      # اجرای در صورت تغییر README یا فایل‌های اصلی
+    branches: ["main"]  # اجرای در صورت تغییر فایل‌های مرتبط
 
 jobs:
   metrics:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write     # اجازه کامیت خروجی SVG
+      actions: read
+      metadata: read
 
     steps:
-      # --- ۱. دریافت کد ---
+      # --- ۱️⃣ دریافت سورس ---
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # --- ۲. تولید آمار ---
+      # --- ۲️⃣ تولید متریک‌ها ---
       - name: Generate GitHub metrics
-        uses: lowlighter/metrics@latest   # ← نسخه جدید، بدون مشکل مخازن Debian
+        uses: lowlighter/metrics@latest       # نسخه بروز، بدون مشکل Debian
         with:
-          # توکن شخصی ذخیره‌شده در Secrets → METRICS_TOKEN
-          token: ${{ secrets.METRICS_TOKEN }}
-
-          # نام کاربری گیت‌هاب
+          token: ${{ secrets.METRICS_TOKEN }} # PAT با دسترسی contents:read/write
           user: aRezaGit
-
-          # نام فایل خروجی در شاخه‌ی main
           filename: github-metrics.svg
 
-          # قالب و بلوک‌های پایه
           template: classic
           base: "header, activity, community, repositories, metadata"
 
-          # تنظیم منطقه زمانی
           config_timezone: Asia/Tehran
 
-          # === پلاگین‌ها و تنظیمات کاربردی ===
-
+          # === پلاگین‌ها ===
           plugin_languages: yes
           plugin_languages_limit: 8
           plugin_languages_ignored: "html, css"
@@ -58,23 +54,23 @@ jobs:
 
           plugin_lines: yes
 
-          # تقویم ایزویی (Commit calendar)
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
 
           plugin_stars: yes
           plugin_stars_limit: 6
 
-          # ===== تنظیمات خروجی کامیت =====
+          # ===== تنظیمات خروجی =====
           output_action: commit
           committer_message: "chore(metrics): update github-metrics.svg"
           repositories: 100
           repositories_forks: no
           repositories_affiliations: owner
 
-      # --- ۳. کامیت خودکار فایل SVG ---
-      - name: Commit generated metrics
+      # --- ۳️⃣ کامیت خودکار خروجی ---
+      - name: Commit metrics to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(metrics): update github-metrics.svg"
           file_pattern: "github-metrics.svg"
+          branch: main
