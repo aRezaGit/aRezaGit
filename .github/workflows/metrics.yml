@@ -14,7 +14,6 @@ jobs:
     permissions:
       contents: write     # اجازه کامیت خروجی SVG
       actions: read
-      metadata: read
 
     steps:
       # --- ۱️⃣ دریافت سورس ---
